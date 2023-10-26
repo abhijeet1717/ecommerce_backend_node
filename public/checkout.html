@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Welcome to E-store</title>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+
+<body>
+    <h1>Welcome to E-store</h1>
+    
+    <!-- Add input fields for shipping address and payment method -->
+    <label for="shippingAddress">Shipping Address:</label>
+    <input type="text" id="shippingAddress" name="shippingAddress" required>
+
+    <label for="paymentMethod">Payment Method:</label>
+    <select id="paymentMethod" name="paymentMethod" required>
+        <option value="credit_card">Credit Card</option>
+        <option value="paypal">PayPal</option>
+        <!-- Add more payment method options if needed -->
+    </select>
+    
+    <button id="checkoutButton">Checkout</button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const checkoutButton = document.getElementById('checkoutButton');
+            const shippingAddressInput = document.getElementById('shippingAddress');
+            const paymentMethodSelect = document.getElementById('paymentMethod');
+
+            checkoutButton.addEventListener('click', async () => {
+                try {
+                    const shippingAddress = shippingAddressInput.value;
+                    const paymentMethod = paymentMethodSelect.value;
+
+                    const payload = {
+                        shippingAddress,
+                        paymentMethod
+                    };
+
+                    const response = await fetch('/api/v1/checkout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lcklkIjoiNjRlODcyNjMzNWJkOWNmYzhjMGZjNjc0Iiwicm9sZSI6ImN1c3RvbWVyIiwiaWF0IjoxNjkzMDMzNTQ4LCJleHAiOjE2OTMwMzcxNDh9.TJbfu9PnnFzQo5x2OU47kYdTD7Qsw8v12Bnc_AcmT1s'
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const data = await response.json();
+                    const sessionId = data.stripeCheckoutUrl.split('/').pop(); // Extract the session ID from the URL
+ console.log(sessionId);
+                    // Initialize Stripe
+                    const stripe = Stripe('pk_test_51Ng5VRSDGc9VTgGkrK0ZFCZNl1KDFP5PRVgxAlodkkIoSc1VfFjhMXPhwGXo3eZOaeM6vZvIInlyjAbdxRH6BafC00qlC8iW0s');
+
+                    // Redirect to Stripe Checkout using the session ID
+                    const { error } = await stripe.redirectToCheckout({
+                        sessionId: sessionId // Corrected typo, should be 'sessionId' not 'SessionId'
+                    });
+
+                    if (error) {
+                        console.error(error);
+                    }
+                } catch (error) {
+                    console.error(error);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
